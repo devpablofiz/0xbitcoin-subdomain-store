@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.22 <0.9.0;
 import "./ENS.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "./Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -12,6 +12,9 @@ interface Resolver {
   function supportsInterface(bytes4 interfaceID) external pure returns (bool);
   function addr(bytes32 node) external view returns (address);
   function setAddr(bytes32 node, address addr) external;
+  function setText(bytes32 node, string calldata key, string calldata value) external;
+  function setContenthash(bytes32 node, bytes calldata hash) external;
+  function setAddr(bytes32 node, uint coinType, bytes memory a) external;
 }
 
 abstract contract ApproveAndCallFallBack {
@@ -28,17 +31,13 @@ contract SubdomainStore is IERC721Receiver, Ownable, ApproveAndCallFallBack {
   //.eth
   bytes32 constant internal TLD_NODE = 0x93cdeb708b7545dc668eb9280176169d1c33cfd8ed6f04690a0bcc88a93fc4ae;
 
-  //0xbitcoin erc20 contract
-  address internal xbtc = 0x244aA29426fb6524760bD9AcbB66ad53C5EB32CA;
-
-  //dev accounts
-  address internal fappablo = 0xD915246cE4430cb893757bC5908990921344F02d; 
-  address internal rms = 0xD73250F6c4a1cd2b604D59636edE5D1D3312AF83;
+  //0xbitcoin contract
+  address internal xbtc = 0xB6eD7644C69416d67B522e20bC294A9a9B405B31;
 
   //0xbitcoin miners guild contract
   address internal guild = 0x167152A46E8616D4a6892A6AfD8E52F060151C70;
 
-  //ens contract
+  //ens registry
   ENS internal ens = ENS(0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e);
 
   //funds trackers
@@ -46,8 +45,8 @@ contract SubdomainStore is IERC721Receiver, Ownable, ApproveAndCallFallBack {
   uint256 internal guildFunds = 0;
 
   //share %
-  uint256 internal devShare = 80;
-  uint256 internal guildShare = 20;
+  uint256 internal devShare = 25;
+  uint256 internal guildShare = 75;
   
   mapping (bytes32 => Domain) internal domains;
   
@@ -78,10 +77,39 @@ contract SubdomainStore is IERC721Receiver, Ownable, ApproveAndCallFallBack {
     guildShare = _guildShare;
   }
 
-  function setResolver(string memory name, address resolver) public onlyOwner {
+  //Sets the address record for a resident ENS name
+  function setResidentAddress(string calldata name, address addr, Resolver resolver) external onlyOwner{  
     bytes32 label = keccak256(bytes(name));
-    bytes32 node = keccak256(abi.encodePacked(TLD_NODE, label));
-    ens.setResolver(node, resolver);
+    bytes32 domainNode = keccak256(abi.encodePacked(TLD_NODE, label));
+    resolver.setAddr(domainNode, addr);
+  }
+
+  //Sets the address record for a resident ENS name
+  function setResidentAddress(string calldata name, uint coinType, bytes memory a, Resolver resolver) external onlyOwner{  
+    bytes32 label = keccak256(bytes(name));
+    bytes32 domainNode = keccak256(abi.encodePacked(TLD_NODE, label));
+    resolver.setAddr(domainNode, coinType, a);
+  }
+
+  //Sets the text record for a resident ENS name
+  function setResidentText(string calldata name, string calldata key, string calldata value, Resolver resolver) external onlyOwner{ 
+    bytes32 label = keccak256(bytes(name)); 
+    bytes32 domainNode = keccak256(abi.encodePacked(TLD_NODE, label));
+    resolver.setText(domainNode, key, value);
+  }
+
+  //Sets the content record for a resident ENS name
+  function setResidentContenthash(string calldata name, bytes calldata hash, Resolver resolver) external onlyOwner{  
+    bytes32 label = keccak256(bytes(name));
+    bytes32 domainNode = keccak256(abi.encodePacked(TLD_NODE, label));
+    resolver.setContenthash(domainNode, hash);
+  }
+  
+  //Sets the resolver record for a resident ENS name
+  function setResidentResolver(string calldata name, address resolver) external onlyOwner {
+    bytes32 label = keccak256(bytes(name));
+    bytes32 domainNode = keccak256(abi.encodePacked(TLD_NODE, label));
+    ens.setResolver(domainNode, resolver);
   }
   
   function doRegistration(bytes32 node, bytes32 label, address subdomainOwner, Resolver resolver) internal {

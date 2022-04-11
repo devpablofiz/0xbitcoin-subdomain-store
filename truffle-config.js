@@ -75,8 +75,9 @@
      mainnet: {
        provider: () => new HDWalletProvider(pkey, `wss://mainnet.infura.io/ws/v3/ea1a1537a7994af4ae26655d8e9ec8b4`),
        network_id: 1,
-       gas: 3500000,
-       gasPrice: 40000000000
+       gas: 1880692,
+       gasPrice: 35000000000,
+       skipDryRun: true
      },
      development: {
        port: 9545,
@@ -96,9 +97,9 @@
        provider: () => new HDWalletProvider(pkey, `wss://rinkeby.infura.io/ws/v3/ea1a1537a7994af4ae26655d8e9ec8b4`),
        network_id: 4,       // Ropsten's id
        gas: 8000000,        // Ropsten has a lower block limit than mainnet
-       gasPrice: 20000000000, // Specified in Wei
+       gasPrice: 30000000000, // Specified in Wei
        confirmations: 2,    // # of confs to wait between deployments. (default: 0)
-       from: "0x33DE4ef4285b5ee3FA4724Bf514142c5791139C0",
+       from: "0x870cd5D6ef84A1AE94FCdC636bab30A0a49520a2",
        timeoutBlocks: 200,  // # of blocks before a deployment times out  (minimum/default: 50)
        skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
      },
